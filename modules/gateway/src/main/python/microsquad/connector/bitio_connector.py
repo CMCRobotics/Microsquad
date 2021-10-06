@@ -2,7 +2,9 @@ from microbit import display,radio, sleep
 
 import logging
 
-from queue import SimpleQueue,Empty
+from rx3 import Observable
+
+from queue import Queue,Empty
 
 from ..mapper.abstract_mapper import AbstractMapper
 from .abstract_connector import AbstractConnector
@@ -13,14 +15,15 @@ class BitioConnector(AbstractConnector):
     Simple Bitio connector implementation that uses the radio to receive messages.
     It also subscribes to a MicroSquadEvent source to queue up messages to the terminals.
     """
-    def __init__(self, mapper : AbstractMapper):
-      self._queue = SimpleQueue()
+    def __init__(self, mapper : AbstractMapper, event_source: Observable):
+      super().__init__(event_source)
+      self._queue = Queue(256)
       self._mapper = mapper
-      radio.config(length=200, channel=12, group=12)
+      radio.config(length=128, channel=12, group=12)
       radio.on()
 
-    def queue(self, message):
-        self._queue.put(message)
+    def queue(self, message, device_id = None):
+        self._queue.put((message, device_id))
     
     def dispatch_next(self):
         incoming_msg = radio.receive()
@@ -33,9 +36,12 @@ class BitioConnector(AbstractConnector):
 
         try:
             outgoing_msg = self._queue.get_nowait()
-            outgoing_msg_ascii = str(outgoing_msg.payload.decode('ascii'))
-            logging.debug("Sending " + outgoing_msg.topic+" "+ outgoing_msg_ascii +" (left "+str(len(self._queue))+")")
-            radio.send(outgoing_msg_ascii)
+            payload = outgoing_msg[0]
+            device_id = outgoing_msg[1]
+            if(device_id is not None):
+                payload += ",dev_id=\"{}\"".format(str(device_id))
+            logging.debug("Sending " + payload+" (left "+str((self._queue.qsize()))+")")
+            radio.send(payload)
         except Empty:
             pass
     

@@ -1,7 +1,7 @@
 import { Player } from "./player";
 import { Vector3 } from "three";
 import { Team } from "./team";
-import { Observer} from "rxjs";
+import { Observable, Observer} from "rxjs";
 import { MqttMicrosquadEventType, MqttUpdateEvent } from "./mqtt";
 
 export class PlayerManager {
@@ -19,9 +19,10 @@ export class PlayerManager {
         error: err => console.log("Error handling MQTT Update Event "+err)
     };
 
-    constructor () {
+    constructor (observable: Observable<MqttUpdateEvent>) {
         this.defaultTeam = new Team("__default__", [], true);
         this.teams["__default__"] = this.defaultTeam;
+        observable.subscribe(this.observer);
     }
 
     handleMQTTUpdateEvent(event : MqttUpdateEvent){
@@ -29,7 +30,7 @@ export class PlayerManager {
         let playerId = event.id
 
         if(!this.hasPlayer(playerId)){
-            this.addPlayer(playerId);
+            this.addPlayer(playerId, false);
         }
 
         switch (event.property) {
@@ -48,11 +49,11 @@ export class PlayerManager {
             case "accessory":
                 this.players[playerId].accessory = event.newValue;
                 break;
-            // case _cmdStringAssignTeam:
-            //     playerManager.assignTeam(playerID, command[1]);
-            //     break;
+            case "nickname":
+                this.players[playerId].nickname = event.newValue;
+                break;
             default:
-                console.warn(`PlayerManager : ${event.property} was not a recognized.`)
+                console.warn(`PlayerManager : ${event.property} was not a recognized property.`)
                 break;
         }
         this.updatePlayerPositions();
@@ -113,10 +114,12 @@ export class PlayerManager {
         return id in this.players;
     }
 
-    addPlayer(id: string) {
+    addPlayer(id: string, refresh: boolean) {
         if(!this.hasPlayer(id)){
             this.players[id] = new Player(id, this.defaultTeam);
-            this.updatePlayerPositions();
+            if(refresh){
+              this.updatePlayerPositions();
+            }
         }
     }
 
