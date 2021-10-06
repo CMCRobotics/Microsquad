@@ -10,7 +10,9 @@ setup(
       name = 'microsquad-gateway',
       python_requires= '>=3.4.0',
       version="0.1",  # version = '${VERSION}',
-      description="Remote control a squad of microbit via radio",
+      description="Remote control a squad of microbits via radio",
+      package_data={'microsquad': ['../../../../shared/public/assets/assets.json']},
+      include_package_data=True,
       long_description="""A framework to orchestrate easily a squad of microbits via radio""",
       url="https://github.com/bcopy/microsquad",
       classifiers=[
@@ -36,6 +38,6 @@ setup(
         "Topic :: Software Development",
       ],
       keywords="IDE education programming microbit",
-      packages =  find_packages('.')
+      packages =  find_packages('.',['ez_setup', 'tests', 'tests.*'])
 )
 
