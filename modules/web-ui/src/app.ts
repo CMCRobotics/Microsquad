@@ -200,12 +200,12 @@ var playerManager = new PlayerManager(playerSubject);
 
 window['playerManager'] = playerManager;
 
-var addPlayerButton : HTMLButtonElement = <HTMLButtonElement>document.getElementById("add-player");
-addPlayerButton.addEventListener('click', () => { playerManager.addPlayer("Player:"+ Math.random().toString(36).substr(2, 5), true) });
+// var addPlayerButton : HTMLButtonElement = <HTMLButtonElement>document.getElementById("add-player");
+// addPlayerButton.addEventListener('click', () => { playerManager.addPlayer("Player:"+ Math.random().toString(36).substr(2, 5), true) });
 
 
-var zoomScreenButton : HTMLButtonElement = <HTMLButtonElement>document.getElementById("zoom-screen");
-zoomScreenButton.addEventListener('click', () => { fitCameraToObject(camera,scoreboard.mesh) });
+// var zoomScreenButton : HTMLButtonElement = <HTMLButtonElement>document.getElementById("zoom-screen");
+// zoomScreenButton.addEventListener('click', () => { fitCameraToObject(camera,scoreboard.mesh) });
 
 var scoreboard = new Scoreboard(UpdateObject.context, scoreboardSubject);
 
@@ -404,7 +404,7 @@ function onMessageArrived(message : any) {
 // }
 
 
-function commandHandler(incomingTopic, value) {
+function commandHandler(incomingTopic, value:string) {
     let topic = incomingTopic.substring(mqttSubscriptionRoot.length-1);
     let topicParts = topic.split("/");
 
@@ -457,19 +457,21 @@ function commandHandler(incomingTopic, value) {
             if(topicParts[2] == "transitions"){
                 var controlsDiv = <HTMLDivElement>document.getElementById("transition-controls");
                 controlsDiv.innerHTML="";
-                value.split(",").forEach(transition => {
-                    var transitionButton : HTMLAnchorElement = <HTMLAnchorElement>document.createElement("a");
-                    transitionButton.classList.add("btn", "btn-primary", "btn-sm");
-                    transitionButton.setAttribute("role", "button");
-                    transitionButton.innerHTML = transition;
-                    transitionButton.setAttribute("data-transition-name", transition);
-                    transitionButton.addEventListener('click', event => { 
-                               var trns = (event.target as Element).getAttribute("data-transition-name");
-                               console.log("firing transition "+trns);
-                               fireTransitionViaMQTT(trns)
+                if(value.trim() != ""){
+                    value.split(",").forEach(transition => {
+                        var transitionButton : HTMLAnchorElement = <HTMLAnchorElement>document.createElement("a");
+                        transitionButton.classList.add("btn", "btn-primary", "btn-sm");
+                        transitionButton.setAttribute("role", "button");
+                        transitionButton.innerHTML = transition;
+                        transitionButton.setAttribute("data-transition-name", transition);
+                        transitionButton.addEventListener('click', event => { 
+                                var trns = (event.target as Element).getAttribute("data-transition-name");
+                                console.log("firing transition "+trns);
+                                fireTransitionViaMQTT(trns)
                         });
-                    controlsDiv.appendChild(transitionButton);
-                });
+                        controlsDiv.appendChild(transitionButton);
+                    });
+                }
             }
 
         }
@@ -507,18 +509,5 @@ function fireTransitionViaMQTT(transition){
 function onMqttConnectionLost(response) {
     if (response.errorCode !== 0) {
         console.error("Connection lost: " + response.errorMessage);
-        // subButton.disabled = true;
-        // pubButton.disabled = true;
     }
 }
-
-// function _btnPublish() {
-//     let topic = (<HTMLInputElement>document.getElementById("pub-topic")).value;
-//     let payload = (<HTMLInputElement>document.getElementById("pub-payload")).value;
-//     mqttClient.publish(topic, payload);
-// }
-
-// function _btnSubscribe() {
-//     let topic = (<HTMLInputElement>document.getElementById("sub-topic")).value;
-//     mqttClient.subscribe(topic);
-// }

@@ -2,12 +2,17 @@ from abc import ABCMeta,abstractmethod
 
 import logging
 import threading
+import enum
+
+from homie.node.property.property_base import Property_Base
 from microsquad.event import EventType, MicroSquadEvent
+from microsquad.mapper.homie.gateway.node_player import NodePlayer
 
 from ..mapper.homie.gateway.device_gateway import DeviceGateway
 from rx3 import Observable
 
 logger = logging.getLogger(__name__)
+
 
 class AGame(metaclass=ABCMeta):
     """
@@ -31,9 +36,8 @@ class AGame(metaclass=ABCMeta):
     def start(self) -> None:
         pass
 
-    @abstractmethod
     def stop(self) -> None:
-        pass
+        logger.debug("Game {} now stopped.".format(__name__))
 
     def fire_transition(self, transition) -> None:
         self._last_fired_transition = transition
@@ -50,6 +54,12 @@ class AGame(metaclass=ABCMeta):
     def device_gateway(self):
         return self._device_gateway
 
+    def get_all_player_nodes(self) -> list:
+        return filter(lambda node : node.id.startswith("player-"), self._device_gateway.nodes.values())
+
+    def get_player_node_by_id(self, id:str) -> NodePlayer :
+        return self._device_gateway.get_node("player-{}".format(id))
+
     def get_available_transitions_as_strings(self) -> list:
         return [t.value for t in self._available_transitions]
 
@@ -57,3 +67,21 @@ class AGame(metaclass=ABCMeta):
         # TODO Add transition validation and/or transformation to JSON format
         self._available_transitions = transitions
         self.event_source.on_next(MicroSquadEvent(EventType.GAME_TRANSITIONS_UPDATED,payload=[t.value for t in self._available_transitions]))
+
+def set_next_in_collection(property: Property_Base, collection) -> None:
+    idx = 0
+    current_value = property.value
+    if(current_value in collection):
+        idx = collection.index(current_value) +1
+    if(idx >= len(collection)) :
+        idx = 0
+    property.value = collection[idx]
+
+def set_prev_in_collection(property: Property_Base, collection) -> None:
+    idx = 0
+    current_value = property.value
+    if(current_value in collection):
+        idx = collection.index(current_value) -1
+    if(idx < 0) :
+        idx = len(collection)-1
+    property.value = collection[idx]

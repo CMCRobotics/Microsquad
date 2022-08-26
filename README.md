@@ -2,7 +2,6 @@
 
 [![Known Vulnerabilities](https://snyk.io/test/github/lucasvanmol/usquad-web-ui/badge.svg)](https://snyk.io/test/github/lucasvanmol/usquad-web-ui)
 ![Build](https://github.com/cmcrobotics/microsquad/workflows/build-action/badge.svg)
-![Dependencies](https://david-dm.org/lucasvanmol/usquad-web-ui.svg)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=lucasvanmol_usquad-web-ui&metric=alert_status)](https://sonarcloud.io/dashboard?id=lucasvanmol_usquad-web-ui)
 
 A Microbit orchestration library based on [Bitio](https://github.com/AdventuresInMinecraft/bitio) : Using a single Microbit as a gateway, control remote Microbits via the radio.
@@ -33,8 +32,27 @@ For the **uSquad** Web Interface :
 
 ## Flash the Microbits
 
+* The Microbit Gateway uses [https://github.com/AdventuresInMinecraft/Bitio](https://github.com/AdventuresInMinecraft/bitio) - Simply download the latest compatible firmware and copy it to the Microbit flash drive to load it as the new firmware.
+* The client firmware is available as a Github release.
+
+## Configure and start Mosquitto MQTT broker
+
+Place the following file contents at location ```/etc/mosquitto/conf.d/listeners.conf``` :
+
+```conf
+listener 1883
+protocol mqtt
+
+listener 9001
+protocol websockets 
+```
+For a more comprehensive example, consult ``docs/samples/mosquitto.conf``.
+
 ## Start the Gateway
 
-## Connect to the administration web interface
+From ```modules/gateway```, execute :
+```bash
+. ./setup-venv.sh
+python -m microsquad.gateway.mqtt
+```
 
-# How to develop

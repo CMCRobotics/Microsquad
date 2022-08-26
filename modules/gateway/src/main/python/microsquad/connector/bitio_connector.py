@@ -19,7 +19,7 @@ class BitioConnector(AbstractConnector):
       super().__init__(event_source)
       self._queue = Queue(256)
       self._mapper = mapper
-      radio.config(length=128, channel=12, group=12)
+      radio.config(length=64, channel=12, group=12, power=7)
       radio.on()
 
     def queue(self, message, device_id = None):
@@ -39,7 +39,7 @@ class BitioConnector(AbstractConnector):
             payload = outgoing_msg[0]
             device_id = outgoing_msg[1]
             if(device_id is not None):
-                payload += ",dev_id=\"{}\"".format(str(device_id))
+                payload += ",dev_id={}".format(str(device_id))
             logging.debug("Sending " + payload+" (left "+str((self._queue.qsize()))+")")
             radio.send(payload)
         except Empty:

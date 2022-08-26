@@ -1,11 +1,12 @@
-from homie.node.property.property_base import Property_Base
 from rx3 import Observable
-from microsquad.event import EventType, MicroSquadEvent
+from microsquad.event import EVENTS_SENSOR, EventType, MicroSquadEvent
 from microsquad.mapper.homie.gateway.device_gateway import DeviceGateway
-
+import enum
 import logging
+import base64
 
-from ..abstract_game import AGame
+from ..abstract_game import AGame, set_next_in_collection, set_prev_in_collection
+from ..emotes import find_emote_by_idx
 
 SKINS = [
         "alienA","alienB","animalA","animalB","animalBaseA","animalBaseB","animalBaseC","animalBaseD","animalBaseE","animalBaseF"
@@ -24,38 +25,26 @@ SKINS = [
 
 ATTITUDES = ["Idle","Run","Walk","CrouchWalk","Wave"]
 
-import enum
+
 
 @enum.unique
 class TRANSITIONS(enum.Enum):
   SELECT_SKIN = "Select skin"
   SELECT_ATTITUDE = "Select attitude"
   EMOJIS = "Emojis"
+  CLEAR = "Clear"
+  def equals(self, string):
+       return self.value == string
 
 TRANSITION_GRAPH = { 
                 TRANSITIONS.SELECT_SKIN : [TRANSITIONS.SELECT_ATTITUDE],
-                TRANSITIONS.SELECT_ATTITUDE : [TRANSITIONS.EMOJIS]
+                TRANSITIONS.SELECT_ATTITUDE : [TRANSITIONS.EMOJIS],
+                TRANSITIONS.EMOJIS : [TRANSITIONS.EMOJIS, TRANSITIONS.CLEAR]
             }
 
+
+
 logger = logging.getLogger(__name__)
-
-def _set_next_in_collection(property: Property_Base, collection) -> None:
-    idx = 0
-    current_value = property.value
-    if(current_value in collection):
-        idx = collection.index(current_value) +1
-    if(idx >= len(collection)) :
-        idx = 0
-    property.value = collection[idx]
-
-def _set_prev_in_collection(property: Property_Base, collection) -> None:
-    idx = 0
-    current_value = property.value
-    if(current_value in collection):
-        idx = collection.index(current_value) -1
-    if(idx < 0) :
-        idx = len(collection)-1
-    property.value = collection[idx]
 
 class Game(AGame):
     """ 
@@ -68,59 +57,63 @@ class Game(AGame):
         print("Customeeze starting")
         super().update_available_transitions([TRANSITIONS.SELECT_SKIN])
         super().device_gateway.update_broadcast("buttons")
+        super().device_gateway.get_node("scoreboard").get_property("image").value = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAlgAAAAoCAYAAAAi24Q0AAAAq0lEQVR42u3WQQEAAAQEsJNcdEr42VKskukAAHCmBAsAQLAAAAQLAECwAAAQLAAAwQIAECwAAAQLAECwAAAECwAAwQIAECwAAMECABAsAAAECwBAsAAABAsAAMECABAsAADBAgBAsAAABAsAQLAAABAsAADBAgAQLAAAwQIAQLAAAAQLAECwAAAQLAAAwQIAECwAAAQLAECwAAAECwAAwQIAECwAAMECAPhnAVXnO9nPYEM/AAAAAElFTkSuQmCC"
 
     def process_event(self, event:MicroSquadEvent) -> None:
         logger.debug("Customeeze received event {} for device {}: {}".format(event.event_type.name, event.device_id, event.payload))
         self.device_gateway.get_node("players-manager").add_player(event.device_id)
-        if event.event_type==EventType.BUTTON:
+        if event.event_type in EVENTS_SENSOR:
             playerNode = self.device_gateway.get_node("player-"+event.device_id)
             if playerNode is None:
                 logger.warn("Player {} is not known".format("player-"+event.device_id))
             else:
-                if super().last_fired_transition is None or super().last_fired_transition not in [TRANSITIONS.SELECT_ATTITUDE.value, TRANSITIONS.SELECT_SKIN.value]:
+                if super().last_fired_transition is None:
                     playerNode.get_property("animation").value = "Wave"
-                elif super().last_fired_transition == TRANSITIONS.SELECT_SKIN.value:
-                    if event.payload["button"]=="a" :
-                        # Shift the player's skin
-                        _set_next_in_collection(playerNode.get_property("skin"), SKINS)
-                    elif event.payload["button"]=="b" :
-                        # Shift the player's skin
-                        _set_prev_in_collection(playerNode.get_property("skin"), SKINS)
-                elif super().last_fired_transition == TRANSITIONS.SELECT_ATTITUDE.value:
-                    if event.payload["button"]=="a" :
-                        # Shift the player's attitude
-                        _set_next_in_collection(playerNode.get_property("animation"), ATTITUDES)
-                    elif event.payload["button"]=="b" :
-                        # Shift the player's attitude
-                        _set_prev_in_collection(playerNode.get_property("animation"), ATTITUDES)
-                    # _set_prev_in_collection(playerNode.get_property("animation"), ATTITUDES)
-                elif super().last_fired_transition == TRANSITIONS.EMOJIS.value:
-                    if event.payload["button"]=="a" :
-                        # Shift the player's attitude
-                        _set_next_in_collection(playerNode.get_property("skin"), SKINS)
-                    elif event.payload["button"]=="b" :
-                        # Shift the player's attitude
-                        _set_prev_in_collection(playerNode.get_property("skin"), SKINS)
-                    # _set_prev_in_collection(playerNode.get_property("animation"), ATTITUDES)
+                else:
+                    last_fired = TRANSITIONS(super().last_fired_transition)
+                    if last_fired == TRANSITIONS.SELECT_SKIN:
+                        if event.payload["button"]=="a" :
+                            # Shift the player's skin
+                            set_next_in_collection(playerNode.get_property("skin"), SKINS)
+                        elif event.payload["button"]=="b" :
+                            # Shift the player's skin
+                            set_prev_in_collection(playerNode.get_property("skin"), SKINS)
+                    elif last_fired == TRANSITIONS.SELECT_ATTITUDE:
+                        if event.payload["button"]=="a" :
+                            set_next_in_collection(playerNode.get_property("animation"), ATTITUDES)
+                        elif event.payload["button"]=="b" :
+                            set_prev_in_collection(playerNode.get_property("animation"), ATTITUDES)
+                    elif last_fired == TRANSITIONS.EMOJIS:
+                        if event.event_type == EventType.VOTE:
+                            emote = find_emote_by_idx(int(event.payload["value"]))
+                            if emote is not None:
+                                playerNode.get_property("say").value = "<span>{} !</span>".format(emote.entity)
+                    
+
+                    
 
     def fire_transition(self, transition) -> None:
         super().fire_transition(transition)
         # Obtain the next transitions in the graph
         # If none, the game can be stopped
-        try:
-          next_transitions = TRANSITION_GRAPH[TRANSITIONS(self._last_fired_transition)]
-          if(next_transitions is not None and len(next_transitions) > 0):
+        next_transitions = TRANSITION_GRAPH.get(TRANSITIONS(self._last_fired_transition), None)
+        
+        if(next_transitions is not None and len(next_transitions) > 0):
                 super().update_available_transitions(next_transitions)
-          else:
+        else:
                 super().update_available_transitions([])  
-        except KeyError:
-          logger.debug("No next transitions available after "+self._last_fired_transition)
-
-        if(TRANSITIONS(self._last_fired_transition) == TRANSITIONS.EMOJIS):
+        
+        last_fired = TRANSITIONS(self._last_fired_transition)
+        if( last_fired == TRANSITIONS.EMOJIS):
               # Switch everybody back to idle
               # Trigger a vote
-              super().device_gateway.update_broadcast("vote,value=90009:09090:00000:99999:90909;09990:99399:99999:99990:99000;90900:90900:99990:99399:99999;09900:99390:99999:00099:99990,duration=4000,votes=4")
-              pass
+            super().device_gateway.update_broadcast("emote,v=5") 
+        elif(last_fired == TRANSITIONS.CLEAR):
+            for pn in self.get_all_player_nodes():
+                pn.get_property("say-duration").value = 60000
+                pn.get_property("say").value = ""
+                pn.get_property("animation").value = "Idle"
+                pn.get_property("scale").value = 1.0
 
 
     def stop(self) -> None:
