@@ -2,10 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
       setup_requires=['pytest-runner'],
-      install_requires=[ 'wheel','cs20-microbitio==0.2', 'paho-mqtt==1.5.1', 'RxPy3', 'Homie4', 'python-dotenv', "homieclient"],
+      install_requires=[ 'wheel','bitio', 'paho-mqtt==1.5.1', 'RxPy3', 'Homie4', 'python-dotenv', "homieclient"],
       extras_require={
          'test':['pytest','pytest-cov','hbmqtt']
       },
+      dependency_links=[
+         'git+https://github.com/whaleygeek/bitio.git#egg=bitio'
+      ],
       tests_require=['pytest'],
       name = 'microsquad-gateway',
       python_requires= '>=3.4.0',

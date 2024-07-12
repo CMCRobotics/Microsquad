@@ -1,0 +1,31 @@
+@startuml MicroSquad Architecture
+title MicroSquad Architecture
+
+actor Player as player
+agent Terminal as terminal
+database "MQTT Broker" as broker
+
+
+agent "Bitio Gateway" as gateway
+
+interface Websocket as websocket
+interface TCP as tcp
+
+package "Game workflow" as workflow
+
+agent "3D Scene Manager" as scene
+
+player ..> terminal : Interacts
+terminal <..> gateway : Read and control terminal state
+websocket <--> broker
+gateway <--> tcp : Update game workflow
+tcp <--> broker
+workflow <--> tcp : Manage game
+scene  <--> websocket : Update game visuals
+
+actor Avatar as avatar
+actor "Virtual Display" as display
+avatar <-- scene
+display <-- scene
+
+@enduml

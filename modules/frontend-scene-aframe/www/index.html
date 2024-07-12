@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <script src="./bundle.js"></script>
+  </head>
+  <body>
+    <a-scene>
+      <a-assets>
+        <a-asset-item id="character-asset" src="assets/characterMediumAllAnimations.glb"></a-asset-item>
+      </a-assets>
+      <a-entity id="camera" wasd-controls camera look-controls position="0 2 0"></a-entity>
+      
+      <a-entity layout="type: line;  plane: xz" position="-2 0 -3.5">
+        <a-entity look-towards="#camera" id="character" label-anchor="offsetVector: -0.1 -0.1 0" scale="0.25 0.25 0.25" gltf-model="#character-asset" texture-map="src: assets/skins/alienA.png" animation-mixer="clip: Idle; loop:repeat">
+          <a-entity id="character1-say" face-target="#camera" visible="true" scale="12 12 12" position="0 4.5 0" htmlembed>
+            <div id="clickme" onclick="console.log('do something')" style="background: #ffffff;border-radius: 20%; padding: 2px; text-align: center;">
+               <span>&#129409;</span>
+             </div>
+          </a-entity>
+          <a-text material="color:white" width="2.5" value="JD" label="overwrite:true"></a-text>
+        </a-entity>
+        <a-entity look-towards="#camera" sid="character2" scale="0.25 0.25 0.25" gltf-model="#character-asset" texture-map="src: assets/skins/alienB.png" animation-mixer="clip: Idle; loop:repeat"></a-entity>
+        <a-entity look-towards="#camera" id="character3" scale="0.25 0.25 0.25" gltf-model="#character-asset" texture-map="src: assets/skins/animalA.png" animation-mixer="clip: Idle; loop:repeat"></a-entity>
+        <a-entity look-towards="#camera" id="character4" scale="0.25 0.25 0.25" gltf-model="#character-asset" texture-map="src: assets/skins/animalB.png" animation-mixer="clip: Idle; loop:repeat"></a-entity>
+        <a-entity look-towards="#camera" id="character5" scale="0.25 0.25 0.25" gltf-model="#character-asset" texture-map="src: assets/skins/animalC.png" animation-mixer="clip: Idle; loop:repeat"></a-entity>
+    </a-entity>
+      <a-entity environment></a-entity>
+    </a-scene>
+
+    <script>
+      
+    </script>
+  </body>

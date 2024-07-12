@@ -56,13 +56,13 @@ jobs:
                 context: ./modules/web-ui
                 platforms: linux/amd64,linux/arm
                 push: true
-                tags: ghcr.io/cmcrobotics/microsquad-web-ui:latest
+                tags: ghcr.io/cmcrobotics/microsquad/web-ui:latest
             
-            - name: Push Web UI container to GHCR
+            - name: Push Gateway container to GHCR
               uses: docker/build-push-action@v3
               with:
                 context: ./modules/gateway
                 platforms: linux/amd64,linux/arm
                 push: true
-                tags: ghcr.io/cmcrobotics/microsquad-gateway:latest
+                tags: ghcr.io/cmcrobotics/microsquad/gateway:latest
 

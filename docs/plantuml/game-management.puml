@@ -1,4 +1,4 @@
-@startuml
+@startuml Game Management
 
 
 actor "Game Organiser" as Organiser

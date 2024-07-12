@@ -1,0 +1,11 @@
+require('aframe')
+require('aframe-extras')
+require('aframe-layout-component')
+require('aframe-environment-component')
+require('aframe-label')
+require('aframe-htmlembed-component')
+require('three')
+
+require('./textureMap')
+require('./lookTowards')
+require('./faceTarget')

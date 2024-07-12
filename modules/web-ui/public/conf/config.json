@@ -1,4 +1,4 @@
 {
-    "MQTT_URI": "ws://localhost:9001/mqtt",
+    "MQTT_URI": "ws://pcen35270-pvss1.cern.ch:9001/mqtt",
     "MQTT_TOPIC_ROOT": "microsquad"
 }

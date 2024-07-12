@@ -138,4 +138,8 @@ modules/gateway/src/main/python/microsquad/portscan.cache
 **/*-venv/*
 node/
 node_modules/
+<<<<<<< HEAD
 
+=======
+pnpm-lock.yaml
+>>>>>>> develop

@@ -1,0 +1,46 @@
+@startuml Microbit Client
+autonumber 1.1
+queue "Broker" as broker
+control "Gateway" as gateway
+actor "Player" as player
+boundary "Microbit Terminal" as microbit
+
+activate player
+activate gateway
+
+player -> microbit : Turn on
+
+activate microbit
+
+microbit -> gateway : bonjour
+gateway -> microbit : bonjour
+
+microbit -> microbit : alive()
+loop For ever
+  microbit -> microbit : incoming= poll_messages()
+  alt message
+    autonumber inc A
+    gateway -> microbit : radio_send()
+    loop while incoming
+        microbit -> microbit : message,tags,timestamp = parse_line_protocol()
+        alt For this terminal
+            alt show
+            microbit -> microbit : display()
+            end
+            alt vote
+            microbit -> microbit : vote_particles()
+            end
+            alt emote
+            microbit -> microbit : vote_emotes()
+            end
+            alt buttons
+            microbit -> microbit : read_buttons()
+            end
+        end
+    end 
+  end
+end
+
+deactivate microbit
+
+@enduml

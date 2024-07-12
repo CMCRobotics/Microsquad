@@ -33,11 +33,52 @@
     </scm>
 
     <properties>
-      <node.version>v14.15.4</node.version>
-      <npm.version>6.14.10</npm.version>
+      <node.version>v16.19.0</node.version>
+      <npm.version>8.19.3</npm.version>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
-    
+
     <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>com.github.eirslett</groupId>
+              <artifactId>frontend-maven-plugin</artifactId>
+              <version>1.12.1</version>
+              <configuration>
+                <installDirectory>${project.parent.basedir}</installDirectory>
+                <workingDirectory>${project.basedir}</workingDirectory>
+                <nodeVersion>${node.version}</nodeVersion>
+                <pnpmVersion>${pnpm.version}</pnpmVersion>
+              </configuration>
+              <executions>
+                  <execution>
+                      <id>install node and npm</id>
+                      <goals>
+                          <goal>install-node-and-npm</goal>
+                      </goals>
+                  </execution>
+                  <execution>
+                      <id>npm install</id>
+                      <goals>
+                          <goal>npm</goal>
+                      </goals>
+                  </execution>
+                  <execution>
+                      <id>npm run build</id>
+                      <goals>
+                          <goal>npm</goal>
+                      </goals>
+                      <configuration>
+                          <arguments>run build</arguments>
+                      </configuration>
+                  </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -76,13 +117,49 @@
                       <requireMavenVersion>
                         <version>3.2.5</version>
                       </requireMavenVersion>
+                      <requireJavaVersion>
+                        <version>11</version>
+                      </requireJavaVersion>
                     </rules>
                   </configuration>
                 </execution>
               </executions>
             </plugin>
-
+            <plugin>
+              <groupId>com.github.funthomas424242</groupId>
+              <artifactId>plantuml-maven-plugin</artifactId>
+              <version>1.5.2</version>
+              <configuration>
+                <format>png</format>
+                <overwrite>true</overwrite>
+                <outputDirectory>${basedir}/docs/plantuml</outputDirectory>
+                <sourceFiles>
+                  <directory>${basedir}</directory>
+                  <includes>
+                    <include>docs/plantuml/**/*.puml</include>
+                  </includes>
+                </sourceFiles>
+              </configuration>
+              <!-- <executions>
+                <execution>
+                  <id>generate-plantuml</id>
+                  <goals>
+                    <goal>generate</goal>
+                  </goals>
+                  <phase>generate-sources</phase>
+                </execution>
+              </executions> -->
+              <dependencies>
+                <dependency>
+                  <groupId>net.sourceforge.plantuml</groupId>
+                  <artifactId>plantuml</artifactId>
+                  <version>1.2020.19</version>
+                  <scope>runtime</scope>
+                </dependency>
+              </dependencies>
+            </plugin>
       </plugins>
+      
     </build>
 
 	<modules>
