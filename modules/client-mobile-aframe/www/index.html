@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <script src="./bundle.js"></script>
+  </head>
+  <body>
+    <script>
+
+      
+      
+    </script>
+    
+    <a-scene>
+      <a-assets>
+        <a-asset-item id="microbit-asset" src="assets/microbit.glb"></a-asset-item>
+        <a-asset-item id="cover-asset" src="assets/cover.glb"></a-asset-item>
+      </a-assets>
+      <!--  -->
+      <a-plane id="plane" position="0 1.6 -2" color="#CCCCC" height="3.2" width="20">
+      </a-plane>
+      <a-entity id="microbit" position="-4.23 0.2 3.76" scale="0.06 0.06 0.06" gltf-model="#microbit-asset"></a-entity>
+      <a-entity id="cover" position="-4.23 0.2 3.65" scale="0.06 0.06 0.06" gltf-model="#cover-asset"></a-entity>
+      <a-camera position="0 1.6 0" wasd-controls fit="#plane"></a-camera>
+      <a-sky color="#ECECEC"></a-sky>
+      
+    </a-scene>
+    
+  </body>
